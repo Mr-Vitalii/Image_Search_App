@@ -1,49 +1,48 @@
 import PropTypes from "prop-types";
-import { Component } from "react";
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { ModalContent, ModalImage, Overlay } from "./Modal.styled";
 
 const modalRoot = document.querySelector("#modal");
 
-class Modal extends Component {
-  static propTypes = {
-    tag: PropTypes.string,
-    imageUrl: PropTypes.string.isRequired,
-    onClose: PropTypes.func.isRequired,
-  };
+const Modal = ({ tag, imageUrl, onClose }) => {
+  useEffect(() => {
 
-  componentDidMount() {
-    window.addEventListener("keydown", this.handelKeydow);
-  }
+    const handelKeydown = (e) => {
+      if (e.code === "Escape") {
+        onClose();
+      }
+    };
 
-  componentWillUnmount() {
-    window.removeEventListener("keydown", this.handelKeydow);
-  }
+    window.addEventListener("keydown", handelKeydown);
 
-  handelKeydow = (e) => {
-    if (e.code === "Escape") {
-      this.props.onClose();
-    }
-  };
+    return () => {
+      window.removeEventListener("keydown", handelKeydown);
+    };
+  }, [onClose]);
 
-  handelOverlayClick = (e) => {
+  
+
+  const handelOverlayClick = (e) => {
     if (e.currentTarget === e.target) {
-      this.props.onClose();
+      onClose();
     }
   };
 
-  render() {
-    const { imageUrl, tag } = this.props;
+  return createPortal(
+    <Overlay onClick={handelOverlayClick}>
+      <ModalContent>
+        <ModalImage src={imageUrl} alt={`${tag}`} />
+      </ModalContent>
+    </Overlay>,
+    modalRoot
+  );
+};
 
-    return createPortal(
-      <Overlay onClick={this.handelOverlayClick}>
-        <ModalContent>
-          <ModalImage src={imageUrl} alt={`${tag}`} />
-        </ModalContent>
-      </Overlay>,
-      modalRoot
-    );
-  }
-}
+Modal.propTypes = {
+  tag: PropTypes.string,
+  imageUrl: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 export { Modal };

@@ -1,5 +1,5 @@
 
-import React, { Component } from "react";
+import React, { useEffect, useState } from "react";
 import { ToastContainer } from 'react-toastify';
 import "react-toastify/ReactToastify.min.css";
 import * as pixabayAPI from '../../services/pixabayAPI';
@@ -10,66 +10,85 @@ import { Container, LoadButton } from "./App.styled";
 
 
 
-class App extends Component {
-  state = {
-    images: [],
-    isLoading: false,
-    page: 1,
-    currentQuery: null,
-    error: null
-  }
+const App = () => {
+
+  const [images, setImages] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [query, setQuery] = useState(null);
+  const [error, setError] = useState(null);
+  const [scrollRef, setScrollRef] = useState(null)
 
 
-  getSearchImages = async (searchQuery) => {
-    const { page, currentQuery } = this.state;
 
-    if (currentQuery !== searchQuery) {
-      this.setState({ images: [], page: 1, error: null });
-    }
+  useEffect(() => {
+    if (query) {
+      const getSearchImages = async () => {
+        setIsLoading(true);
+        try {
+          await new Promise(resolve => setTimeout(resolve, 1000));
 
-    try {
-      this.setState({ isLoading: true });
+          const foundPictures = await pixabayAPI.getPictures(query, page);
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+          if (foundPictures.length === 0) {
+            setError("Nothing found for your request");
+          }
+          setImages((prevImages) => [...prevImages, ...foundPictures.hits]);
 
-      const images = await pixabayAPI.getPictures(searchQuery, page);
-
-      if (images.hits.length === 0) {
-        this.setState({ error: "Nothing found for your request" });
+        } catch (error) {
+          setError(error.message);
+        }
+        finally {
+          setIsLoading(false);
+        }
       }
-      this.setState({ currentQuery: searchQuery });
-      this.setState((prevState) => ({
-        images: [...prevState.images, ...images.hits],
-        isLoading: false,
-        page: prevState.page + 1,
-      }));
-    } catch (error) {
-      this.setState({ error: error.message });
+
+      getSearchImages();
     }
-    finally {
-      this.setState({ isLoading: false });
+  }, [query, page])
+
+  const handelSubmit = (searchQuery) => {
+
+    if (query !== searchQuery) {
+      setImages([]);
+      setPage(1);
+      setError(null);
     }
+    setQuery(searchQuery);
+  }
+
+  const loadMore = () => {
+    setPage((prevPage) => prevPage + 1);
   }
 
 
-  render() {
-    const { images, isLoading, currentQuery, error } = this.state
+  const scrollTofirstImageInCollection = (ref) => {
+    if (ref.current.children.length > 0) {
+      const firstImageInCollection =
+        ref.current.children[ref.current.children.length - 12];
+      
+      setScrollRef(firstImageInCollection)
 
-    return (
-      <Container>
-        <ToastContainer autoClose={3000} position="top-left" />
-        <Searchbar onSubmit={this.getSearchImages} isSybmitting={isLoading} />
-        {error && <h2>{error}</h2>}
-        <ImageGallery images={images} />
-        {isLoading && <Loader />}
-        {images.length > 0 &&
-          <LoadButton onClick={() => this.getSearchImages(currentQuery)}>
-            Load more
-          </LoadButton>}
-      </Container>
-    );
-  }
+      if (scrollRef !== firstImageInCollection) {
+        firstImageInCollection.scrollIntoView({ behavior: "smooth" });
+      }
+    }
+  };
 
+
+  return (
+    <Container>
+      <ToastContainer autoClose={3000} position="top-left" />
+      <Searchbar onSubmit={handelSubmit} isSybmitting={isLoading} />
+      {error && <h2>{error}</h2>}
+      <ImageGallery images={images} getRef={scrollTofirstImageInCollection} />
+      {isLoading && <Loader />}
+      {images.length > 0 &&
+        <LoadButton onClick={loadMore}>
+          Load more
+        </LoadButton>}
+    </Container>
+  );
 }
 
 export { App };

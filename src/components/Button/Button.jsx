@@ -23,5 +23,5 @@ Button.prototype = {
 
 
 
-export default Button;
+export  {Button};
 

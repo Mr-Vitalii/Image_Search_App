@@ -1,5 +1,5 @@
 import styled from "@emotion/styled";
-import Button from "../Button/Button";
+import {Button} from "../Button/Button";
 
 export const Container = styled.div`
   display: grid;

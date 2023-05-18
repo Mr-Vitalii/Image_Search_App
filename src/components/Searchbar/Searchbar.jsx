@@ -1,4 +1,3 @@
-import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { Formik } from "formik";
 import { toast } from "react-toastify";
@@ -11,14 +10,9 @@ import {
   SearchForm,
 } from "./Searchbar.styled";
 
-class Searchbar extends Component {
-  static propTypes = {
-    isSybmitting: PropTypes.bool.isRequired,
-  };
-
-  handleSubmit = (values, { resetForm }) => {
+const Searchbar = ({ isSybmitting, onSubmit }) => {
+  const handleSubmit = (values, { resetForm }) => {
     const { search } = values;
-    const { onSubmit } = this.props;
 
     if (search.trim() === "") {
       toast("Please enter a value");
@@ -29,28 +23,29 @@ class Searchbar extends Component {
     resetForm();
   };
 
-  render() {
-    const { isSybmitting } = this.props;
-    return (
-      <SearchContainer>
-        <Formik initialValues={{ search: "" }} onSubmit={this.handleSubmit}>
-          <SearchForm>
-            <Button type="submit" disabled={isSybmitting}>
-              <ButtonLabel>Search</ButtonLabel>
-            </Button>
+  return (
+    <SearchContainer>
+      <Formik initialValues={{ search: "" }} onSubmit={handleSubmit}>
+        <SearchForm>
+          <Button type="submit" disabled={isSybmitting}>
+            <ButtonLabel>Search</ButtonLabel>
+          </Button>
 
-            <Input
-              type="text"
-              autoComplete="off"
-              autoFocus
-              placeholder="Search images and photos"
-              name="search"
-            />
-          </SearchForm>
-        </Formik>
-      </SearchContainer>
-    );
-  }
-}
+          <Input
+            type="text"
+            autoComplete="off"
+            autoFocus
+            placeholder="Search images and photos"
+            name="search"
+          />
+        </SearchForm>
+      </Formik>
+    </SearchContainer>
+  );
+};
+
+Searchbar.propTypes = {
+  isSybmitting: PropTypes.bool.isRequired,
+};
 
 export { Searchbar };

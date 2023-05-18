@@ -1,28 +1,31 @@
-import React, { Component } from "react";
+import React, { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { ImageGalleryItem } from "../ImageGalleryItem/ImageGalleryItem";
 import { GalleryList } from "./ImageGallery.styled";
 
-class ImageGallery extends Component {
-  static propTypes = {
-    images: PropTypes.arrayOf(
-      PropTypes.shape({
-        id: PropTypes.number.isRequired,
-      })
-    ),
-  };
+const ImageGallery = ({ images, getRef }) => {
+  const containerRef = useRef(null);
 
-  render() {
-    const { images } = this.props;
+  useEffect(() => {
+    getRef(containerRef);
+  }, [getRef]);
 
-    return (
-      <GalleryList>
-        {images.map((image) => (
-          <ImageGalleryItem key={image.id} image={image} />
-        ))}
-      </GalleryList>
-    );
-  }
-}
+  return (
+    <GalleryList ref={containerRef}>
+      {images.map((image) => (
+        <ImageGalleryItem key={image.id} image={image} />
+      ))}
+    </GalleryList>
+  );
+};
+
+ImageGallery.propTypes = {
+  images: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      getRef: PropTypes.func.isRequired,
+    })
+  ),
+};
 
 export { ImageGallery };
